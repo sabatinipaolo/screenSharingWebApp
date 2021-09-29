@@ -1,4 +1,4 @@
-# sharescreenwebapp
+# sharingscreenwebapp
 
 servizio di condivisione dello schermo da usare in rete locale via web ...
 
