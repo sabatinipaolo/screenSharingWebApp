@@ -24,6 +24,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
+    io.sockets.emit('lista_stanza',Array.from(clients.keys()).join(''));
   });
 
   socket.on('condivido', () => {
