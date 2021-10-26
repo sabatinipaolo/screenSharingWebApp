@@ -10,7 +10,15 @@ const stopButton = document.getElementById('stopButton');
 const partecipanti = document.getElementById('partecipanti');
 const condivisore = document.getElementById('condivisore');
 const chiSonoIo = document.getElementById('chiSonoIo');
+const video = document.getElementById('video');
 
+// Define media API
+const displayMediaOptions = {
+    video: {
+      cursor: "always",
+    },
+    audio: false,
+  };
 //var room="LAB";
 
 var socket = io.connect();
@@ -36,9 +44,28 @@ socket.on('stop_condividendo', function (staCondividendo) {
 startButton.onclick = function() {
        socket.emit('condivido');
        console.log("CONDIVIDO CLICK");
+       startSharing() ;
 }
 
 stopButton.onclick = function() {
        socket.emit('stop_condivido');
          console.log("STOP CONDIVIDO CLICK");
+         stopSharing();
 }
+
+//MEDIA API FUNCTION
+async function startSharing() {
+    try {
+      video.srcObject = await navigator.mediaDevices.getDisplayMedia(
+        displayMediaOptions
+      );
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    
+  function stopSharing() {
+      let tracks = video.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+      video.srcObject = null;
+    } 
