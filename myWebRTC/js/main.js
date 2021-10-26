@@ -1,7 +1,5 @@
 'use strict';
 
-var isInitiator= false;
-
 
 var pcConfig = {
   'iceServers': [] ///QUI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -13,7 +11,6 @@ const stopButton = document.getElementById('stopButton');
 const partecipanti = document.getElementById('partecipanti');
 const condivisore = document.getElementById('condivisore');
 const chiSonoIo = document.getElementById('chiSonoIo');
-
 
 
 
@@ -29,30 +26,31 @@ socket.on("connect", () => {
 });
 
 socket.on('lista_stanza', function (lista) {
-  console.log(lista);
   partecipanti.innerHTML = lista;
-  isInitiator = true;
 });
 
 
 socket.on('sta_condividendo', function (staCondividendo) {
-  	console.log("staaaaaaa");
   condivisore.innerHTML = staCondividendo;
+
 });
 
 socket.on('stop_condividendo', function (staCondividendo) {
-  	console.log("stopoooop");
   condivisore.innerHTML = "";
+
 });
 
 
 startButton.onclick = function() {
-	console.log("click start");
-   socket.emit('condivido',room);
+       socket.emit('condivido',room);
+       
+
+
 }
 
 stopButton.onclick = function() {
-	console.log("click stop");
-   socket.emit('stop_condivido',room);
-}
 
+       socket.emit('stop_condivido',room);
+  
+
+}

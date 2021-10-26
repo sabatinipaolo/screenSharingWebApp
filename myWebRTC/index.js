@@ -35,37 +35,27 @@ io.on('connection', (socket) => {
     var clientsInRoom = io.sockets.adapter.rooms.get(room);
     var numClients = clientsInRoom.size
     
-    console.log('user join ' + room);
-    console.log('user join ' + numClients);
-    console.log(clientsInRoom.toString());
     io.to(room).emit('lista_stanza',Array.from(clientsInRoom).join(' '));
    
   });
   
   socket.on('condivido', (room) => {
-    console.log("ciao  "+staCondividendo)
     if (staCondividendo == "NESSUNO"){
       staCondividendo=socket.id;
-      console.log('ssss='+staCondividendo);
       io.to(room).emit('sta_condividendo', staCondividendo);
-      
     }
    
   });
   
   
   socket.on('stop_condivido', (room) => {
-    console.log("ciaoonnn  "+staCondividendo)
     if (staCondividendo != "NESSUNO"){
-      staCondividendo="NESSUNO";
-      console.log('ssss='+staCondividendo);
-      io.to(room).emit('stop_condividendo');
-      
+      if ( staCondividendo == socket.id ) {
+            staCondividendo="NESSUNO";
+            io.to(room).emit('stop_condividendo');
+      }
     }
-   
   });
-
-
 
 });
 
