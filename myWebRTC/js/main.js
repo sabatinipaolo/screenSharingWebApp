@@ -69,3 +69,5 @@ async function startSharing() {
       tracks.forEach((track) => track.stop());
       video.srcObject = null;
     } 
+//RTC FUNCTIONE AND UTILITY
+// https://stackoverflow.com/questions/20315178/generating-ice-candidates
