@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta content='text/html;charset=utf-8' http-equiv='Content-Type'> 
+<meta content='utf-8' http-equiv='encoding'>
+  <title>SENDER</title>
+</head>
+
+<body>
+<h1 id="chiSono"></h1>
+  <div>
+    <button id="startButton">Start Sharing</button>
+    <button id="stopButton">Stop Sharing</button>
+  </div>
+
+
+<div id="staiCondividendo"></div>
+
+<div>
+<video id="video" width="400" height="340" autoplay></video>
+</div>
+
+
+
+  <!-- This file is automatically added/served when running "node index.js". -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+  <script src="./main.js"></script>
+
+</body>
+
+</html>
