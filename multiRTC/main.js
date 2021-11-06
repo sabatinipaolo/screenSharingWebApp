@@ -13,18 +13,14 @@ const partecipanti = document.getElementById('partecipanti');
 const condivisore = document.getElementById('condivisore');
 const chiSonoIo = document.getElementById('chiSonoIo');
 
-
 var pc;
-pc = new RTCPeerConnection(pcConfig);
-
-
 var videoStream;
 
 let staCondividendo;
+let staiGuardando;
 
-let makingOffer = false;
-let ignoreOffer = false;
-let polite=false;
+const pari= new Map();
+var pariToCondivisore
 
 //*connessione al signal server
 const socket = io.connect();
@@ -41,90 +37,60 @@ const displayMediaOptions = {
 
 startButton.onclick = async function (e) {
 
-	socket.emit('condivido');
-    console.log("CONDIVIDO CLICK");
-    startButton.disabled=true;
-    stopButton.disabled=false; 
-
-	return;
-	
 	//TODO crivi policy for polite 
-	polite=true;
+	//polite=true;
     //cattura schermo e stream;
     {try {
       
       videoStream= await navigator.mediaDevices.getDisplayMedia(
         displayMediaOptions);
         
-      for (const track of videoStream.getTracks()) {
-      pc.addTrack(track, videoStream);
-      }  
+      //for (const track of videoStream.getTracks()) {
+      //pc.addTrack(track, videoStream);
+      //}  
         
       video.srcObject=videoStream;
 
     } catch (error) {
         console.log(error);
       }
-    };
-    
-    
-    
-    
-
-  };
+    };	
+    socket.emit('condivido');
+    console.log("condivido");
+    startButton.disabled=true;
+    stopButton.disabled=false; 
+    condivisore.innerHTML=socket.id;
+    staCondividendo=socket.id;
+};
   
   
 stopButton.onclick = function (e) {
   //TODO : gestire errori ... 
   //assert : staCondividendo===  sonoIo
+  
+  socket.emit('stop_condivido');
   startButton.disabled=false;
   stopButton.disabled=true; //TODO è ridondante
-    
-    stopSharing();
-  };
 
-//***********
-// fuzioni RTC
-//************
-{
-pc.onnegotiationneeded = async () => {
-  console.log("onnegotiationneeded occur");
-  try {
-    makingOffer = true;
-    await pc.setLocalDescription();
-    socket.emit("message-desc", socket.id,  JSON.stringify({description:pc.localDescription} ));
-  } catch(err) {
-      console.error(err);
-  } finally {
-      makingOffer = false;
+  let tracks = video.srcObject.getTracks();
+  tracks.forEach((track) => track.stop());
+  video.srcObject = null;
+
+  // Chiudo le connessionei tra pari ..
+  if (pariToCondivisore ) { //TODO : è inutile l'if ??
+	    pariToCondivisore.close();
+	    pariToCondivisore.pc=null;
+	    paricondivisore=null;
+  } else { 
+	  pari.forEach((pc, sock) => {
+		  pc.pc.close(); 
+		  pc.pc=null;pc=null;
+	  });
+	  pari.clear();
   }
-  
-}
 
-//Handling incoming tracks
-pc.ontrack = ({track, streams}) => {
-		console.log("ricevo traccia");
-		track.onunmute = () => {
-			if (video.srcObject) {
-			return;
-			}
-		video.srcObject = streams[0];
-		}
-}
+};
 
-pc.onicecandidate = (event)=> {
-//console.log("on ice candidate"+ event.candidate.candidate);
-  if (event.candidate) {
-	  console.log("     invio candidate " + event.candidate.candidate);
-    // Send the candidate to the remote peer
-    socket.emit("message-cand", socket.id,  JSON.stringify(event.candidate));
-    
-  } else {
-    // All ICE candidates have been sent
-  }
-}
-//* fine funzioni RTC
-}
 
 
 {//***Funzioni SIGNAL*****************
@@ -146,21 +112,24 @@ socket.on('welcome', function (parStaCond) {
 	  stopButton.disabled=true; //TODO è ridondante
   } else {
 	  // chiedi al condivisore una connessione RTC
+	    chiedeDiGuardare(parStaCond);
 	  //TODO: 
   }
 });
 
 
-socket.on('sta_condividendo', function (staCondividendo) {
-console.log("From SigSERV: sta condividendo"+socket.id);
+socket.on('sta_condividendo', function (staCondividendop) {
+console.log("From SigSERV: sta condividendo"+staCondividendop);
   //TODO : gestire errori ... 
   //assert : staCondividendo==="NESSUNO"
   startButton.disabled=true;
   stopButton.disabled=true; //TODO è ridondante
   
-  condivisore.innerHTML = staCondividendo;
+  condivisore.innerHTML = staCondividendop;
+  staCondividendo=staCondividendop;
   // chiedi al condivisiore una connessione RTC 
-  //TODO 
+  chiedeDiGuardare(staCondividendo)
+  //TODO ---
 });
 
 socket.on('stop_condividendo', function (staCondividendo) {
@@ -170,43 +139,76 @@ socket.on('stop_condividendo', function (staCondividendo) {
   stopButton.disabled=true; //TODO è ridondante
   
   condivisore.innerHTML = "";
+  video.srcObject = null;
+  
+  //TODO: chiusura dell connessioni peer?
+  console.log("chiudo le connessioni");
+  if (pariToCondivisore ) { //TODO : è inutile l'if ??
+	    pariToCondivisore.pc.close();
+	    pariToCondivisore.pc=null;
+	    pariToCondivisore=null;
+	    //delete pariToCondivisore;
+  
+  } else { 
+	  pari.forEach((pc, sock) => {
+		  pc.pc.close(); 
+		  pc.pc=null;pc=null;
+		  //delete pc; //TODO ?? sevre ??
+	  });
+	  pari.clear();
+  }
   
 });
+
+
 socket.on('lista_stanza', function (lista) {
   partecipanti.innerHTML = lista;
 });
 
 
 socket.on("user_disconnected", async (sockID)=> {
+	//TODO: 
 	console.log("user disconnected ="+sockID);
-	pc.close();
+	//pc.close();
 	
 });
 
 
-socket.on("message-desc", async (sockID, message)=> {
-	console.log("message from="+sockID);
-	console.log("message "+message);
+socket.on("message-desc", async (sockFrom, sockTO, message)=> {
+	//TODO : 
+	console.log("message-desc from  ="+sockFrom);
+	console.log("               to  ="+sockTO);
+	console.log("           message ="+message);
 	//console.log("message "+JSON.stringify(message));
 	message=JSON.parse(message);
+	
+	if (pariToCondivisore ) { 
+		console.log("pariconfividore TRUE"+pariToCondivisore);
+		pc=pariToCondivisore;
+	}
+	else { 
+		console.log("pariconfividore FAKSE");
+	    pc=pari.get(sockFrom);
+	} ;
+	
     try {
 		if (message.description) {
-           const offerCollision = (message.description.type == "offer") &&
-                     (makingOffer || pc.signalingState != "stable");
+           pc.offerCollision = (message.description.type == "offer") &&
+                     (pc.makingOffer || pc.pc.signalingState != "stable");
 
-           ignoreOffer = !polite && offerCollision;
-           if (ignoreOffer) { return; }
+           pc.ignoreOffer = !pc.polite && pc.offerCollision;
+           if (pc.ignoreOffer) { return; }
 
-           await pc.setRemoteDescription(message.description);
+           await pc.pc.setRemoteDescription(message.description);
            if (message.description.type == "offer") {
 			   console.log("è un offerta");
-               await pc.setLocalDescription();
-               socket.emit("message-desc", socket.id,  JSON.stringify({description:pc.localDescription} ));
+               await pc.pc.setLocalDescription();
+               socket.emit("message-desc", socket.id, sockFrom, JSON.stringify({description:pc.pc.localDescription} ));
            }
         } else if (message.candidate) {
-			       console.log("è un candidato "+message.candidate);
-				   try {
-					 await pc.addIceCandidate(message.candidate);
+			       console.log("è un candidato???? "+message.candidate);
+				   try {//TODO verificare se serve ancora...
+					 await pc.pc.addIceCandidate(message.candidate);
 					 console.log("aggiunto candidato "+message.candidate);
 				   
 				   } catch(err) {
@@ -220,89 +222,124 @@ socket.on("message-desc", async (sockID, message)=> {
 	 }
 });
 
-socket.on("message-cand", async (sockID, message)=> {
-	console.log("message-cand  from="+sockID);
+socket.on("message-cand", async (sockFrom, sockTo, message)=> {
+	console.log("message-cand  from="+sockFrom);
+	console.log("                to="+sockTo);
 	console.log("                  ="+message);
 	//console.log("message "+JSON.stringify(message));
 	message=JSON.parse(message);
     console.log("è un candidato ");
-try {
- await pc.addIceCandidate(message);
- console.log("aggiunto candidato "+message);
+    	if (pariToCondivisore ) { 
+		console.log("pariconfividore TRUE"+pariToCondivisore);
+		pc=pariToCondivisore;
+	}
+	else { 
+		pc=pari.get(sockFrom);
+		console.log("pariconfividore FAKSE"+ pc);
+	    pc=pari.get(sockFrom);
+	} ;
+	try {
+		await pc.pc.addIceCandidate(message);
+		console.log("aggiunto candidato "+message);
 
-} catch(err) {
-	 if (!ignoreOffer) {
+	} catch(err) {
+		if (!pc.ignoreOffer) {
 		  throw err;
 	 }
-}
+	}
 });
+
+
+
+socket.on("vuole_guardare",  (sockFrom, sockTo)=> {
+
+  //assert staCondividendo===socket.id;
+  console.log("\nVuole Guradere ="+sockFrom);
+  console.log("\n               ="+sockTo+" ??="+staCondividendo);
+  
+  // crea una RTCPeerconnection per socket....
+  
+  //let peer = {pc: new RTCPeerConnection(pcConfig), makingOffer : false , ignoreOffer: false, polite:false};
+  let peer = new ConnessionePari(sockFrom);
+  
+  console.log("               = creata peerr per "+sockFrom);
+ 
+  pari.set( sockFrom , peer );
+  
+  console.log("               = agg.gotracce per "+sockFrom);
+ 
+  for (const track of videoStream.getTracks()) {
+      peer.pc.addTrack(track, videoStream);
+  }
+  
+
+});
+
 
 /*fine funzioni signal*/  }
 
-//async function startSharing() {
-    ////cattura schermo e stream;
-    //try {
-      
-      //videoStream= await navigator.mediaDevices.getDisplayMedia(
-        //displayMediaOptions);
-        
-      //for (const track of videoStream.getTracks()) {
-      //pc.addTrack(track, videoStream);
-      //}  
-        
-      //video.srcObject=videoStream;
 
-    //} catch (error) {
-        //console.log(error);
-      //}
-    ////Handling incoming tracks
-    //pc.ontrack = ({track, streams}) => {
-		//console.log("ricevo traccia");
-		//track.onunmute = () => {
-		//if (remoteVideo.srcObject) {
-		//return;
-		//}
-		//remoteVideo.srcObject = streams[0];
-  //};
-//};
 
-    //// onnegotiationneeded 
+
+function chiedeDiGuardare(staCondividendo){
+	
+	//pariToCondivisore = new RTCPeerConnection(pcConfig);
+	pariToCondivisore = new ConnessionePari(staCondividendo);
+	
+	console.log( "chiedo di guardare" );
+	socket.emit("voglio_guardare",socket.id,staCondividendo);
+	
+
+}
+	
+
+
+    
+class ConnessionePari {
+  constructor(sockID) {
+    this.makingOffer = false;
+    this.ignoreOffer = false;
+    this.polite = false;
+    this.pc= new RTCPeerConnection(pcConfig);
+    
+    this.pc.onnegotiationneeded = async () => {
+		console.log("onnegotiate needed with "+sockID);
+		try {
+			this.pc.makingOffer = true;
+			await this.pc.setLocalDescription();
+			console.log({ description: this.pc.localDescription } );
+            socket.emit("message-desc", socket.id, sockID, JSON.stringify({description:this.pc.localDescription} ));
+		} catch(err) {
+			  console.error(err);
+		} finally {
+			 this.pc.makingOffer = false;
+		} //try
+    };
+    
+    this.pc.onicecandidate = (event)=> {
+	//console.log("on ice candidate"+ event.candidate.candidate);
+	  if (event.candidate) {
+		  console.log("     invio candidate " + event.candidate.candidate);
+		// Send the candidate to the remote peer
+		socket.emit("message-cand", socket.id, sockID,  JSON.stringify(event.candidate));
+		
+	  } else {
+		// All ICE candidates have been sent
+	  }
+	}
+	
+	this.pc.ontrack = ({track, streams}) => {
+		console.log("ricevo traccia");
+		track.onunmute = () => {
+			if (video.srcObject) {
+			return;
+			}
+		video.srcObject = streams[0];
+		}
+	}
+  }
+}
+
   
 
-    //pc.onnegotiationneeded = async () => {
-		//console.log("onnegotiate neede");
-		//try {
-			//makingOffer = true;
-			//await pc.setLocalDescription();
-			//;
-			//console.log({ description: pc.localDescription } );
-////			socket.emit( "message", { description: pc.localDescription });
-			//socket.emit( "message",  {data:{ description: pc.localDescription }});
-		//} catch(err) {
-			  //console.error(err);
-		//} finally {
-			//makingOffer = false;
-		//} //try
-    //};
-    
-    ////Handling incoming ICE candidates
-    //pc.onicecandidate = ({candidate}) => socket.emit( "message",{candidate});
-
-    ////Handling incoming messages on the signaling channel
-    //let ignoreOffer = false;
-
-	
-    
-    
-    
- 
-      
-//}//end startSharing()
-
-
-function stopSharing() {
-      let tracks = video.srcObject.getTracks();
-      tracks.forEach((track) => track.stop());
-      video.srcObject = null;
-    }
 

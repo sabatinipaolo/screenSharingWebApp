@@ -24,7 +24,7 @@ let clients = io.sockets.sockets;// is a Map
 
 
 io.on('connection', (socket) => {
-  console.log('a user connected ');
+  console.log('\na user connected ');
   console.log("  nume connessioni="+clients.size);
  
   //
@@ -45,6 +45,8 @@ io.on('connection', (socket) => {
   });
   
   socket.on('condivido', () => {
+	
+	console.log("\ncondivido ="+socket.id+"   staCindividendo="+staCondividendo);
     if (staCondividendo == "NESSUNO"){
       staCondividendo=socket.id;
       
@@ -55,13 +57,43 @@ io.on('connection', (socket) => {
 
   socket.on('stop_condivido', () => {
     console.log("stop condivido");
+    
     if (staCondividendo != "NESSUNO"){
       if ( staCondividendo == socket.id ) {
             staCondividendo="NESSUNO";
-            io.sockets.emit('stop_condividendo');
+            socket.broadcast.emit('stop_condividendo');
       }
     }
   });
+  
+  socket.on('voglio_guardare', (sockFrom, sockTo) => {
+    console.log("\nvoglio guardare from="+sockFrom);
+    console.log(  "                  to="+sockTo);
+    
+    socket.to(sockTo).emit("vuole_guardare", sockFrom,sockTo);
+    
+  });
+  
+  socket.on('message-desc', (sockFrom, sockTo, message)=>{
+    console.log("\nmessage desc from="+sockFrom);
+    console.log("               to="+sockTo+ "?="+ socket.id );
+    //TODO: 
+    console.log("  sta condividendo="+staCondividendo);
+	//console.log("                  ="+message);
+    socket.to(sockTo).emit( 'message-desc',sockFrom, sockTo, message );
+  });
+  
+  socket.on('message-cand', (sockFrom, sockTo, message)=>{
+    console.log("message-cand from="+sockFrom);
+    console.log("               to="+sockTo);
+    
+	//console.log("                 ="+message);
+    socket.to(sockTo).emit( 'message-cand',sockFrom, sockTo, message );
+  });
+  
+
+  
+  
 });
   
   
