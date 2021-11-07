@@ -20,49 +20,45 @@ app.listen(8080);
 let staCondividendo="NESSUNO";
 let clients = io.sockets.sockets;// is a Map
 
-//io.sockets.emit('lista_stanza',Array.from(clients.keys()).join(' '));
-
-
 io.on('connection', (socket) => {
   console.log('\na user connected ');
-  console.log("  nume connessioni="+clients.size);
- 
-  //
+  console.log("  num connessioni="+clients.size);
+
   socket.emit('welcome',staCondividendo);
 
-  
   //informa tutti gli altri 
-  //socket.broadcast.emit('new_user'.socket.id);
   io.sockets.emit('lista_stanza',Array.from(clients.keys()).join(' '));
-
-
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    console.log("  nume connessioni="+clients.size);
+    console.log("  num connessioni="+clients.size);
 
     socket.broadcast.emit( 'user_disconnected', socket.id);
+    //TODO controllare se era il condivisore, qui o sui client ?
   });
   
   socket.on('condivido', () => {
-	
-	console.log("\ncondivido ="+socket.id+"   staCindividendo="+staCondividendo);
+  
+    console.log("\ncondivido ="+socket.id+"   staCindividendo="+staCondividendo);
+
     if (staCondividendo == "NESSUNO"){
       staCondividendo=socket.id;
-      
       socket.broadcast.emit('sta_condividendo', staCondividendo);
-      //io.sockets.emit('sta_condividendo', staCondividendo);
-    } else { console.log ("ERRORE : richiesta di condicvione in conflitto"); }
-   });
+    }
+    else {
+      console.log ("ERRORE : richiesta di condicvione in conflitto"); }
+  });
 
   socket.on('stop_condivido', () => {
-    console.log("stop condivido");
-    
+
+    console.log("stop condivido "+ socket.id+" condi="+ staCondividendo);
+
     if (staCondividendo != "NESSUNO"){
       if ( staCondividendo == socket.id ) {
-            staCondividendo="NESSUNO";
-            socket.broadcast.emit('stop_condividendo');
+        staCondividendo="NESSUNO";
+        socket.broadcast.emit('stop_condividendo');
       }
+      else ( console.log( "ERRORE !!! non è lui che sta condividendo") )
     }
   });
   
@@ -71,53 +67,20 @@ io.on('connection', (socket) => {
     console.log(  "                  to="+sockTo);
     
     socket.to(sockTo).emit("vuole_guardare", sockFrom,sockTo);
-    
   });
   
   socket.on('message-desc', (sockFrom, sockTo, message)=>{
     console.log("\nmessage desc from="+sockFrom);
     console.log("               to="+sockTo+ "?="+ socket.id );
-    //TODO: 
     console.log("  sta condividendo="+staCondividendo);
-	//console.log("                  ="+message);
+    //console.log("                  ="+message);
     socket.to(sockTo).emit( 'message-desc',sockFrom, sockTo, message );
   });
   
   socket.on('message-cand', (sockFrom, sockTo, message)=>{
     console.log("message-cand from="+sockFrom);
     console.log("               to="+sockTo);
-    
-	//console.log("                 ="+message);
+    //console.log("                 ="+message);
     socket.to(sockTo).emit( 'message-cand',sockFrom, sockTo, message );
   });
-  
-
-  
-  
 });
-  
-  
-  /*
-  socket.on('message', (sockID, message)=>{
-    console.log("message from="+sockID);
-	console.log("message "+message);
-    socket.broadcast.emit( 'message', sockID, message );
-  });
-    socket.on('message-cand', (sockID, message)=>{
-    console.log("message-cand from="+sockID);
-	console.log("                 ="+message);
-    socket.broadcast.emit( 'message-cand', sockID, message );
-  });
-    socket.on('message-desc', (sockID, message)=>{
-    console.log("message desc="+sockID);
-	console.log("            ="+message);
-    socket.broadcast.emit( 'message-desc', sockID, message );
-  });
-  
-
-
-});*/
-
-
-
-
