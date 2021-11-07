@@ -11,13 +11,13 @@ const video = document.getElementById('video');
 const chiSono = document.getElementById('chiSono');
 const partecipanti = document.getElementById('partecipanti');
 const condivisore = document.getElementById('condivisore');
-const chiSonoIo = document.getElementById('chiSonoIo');
 
-var pc;
+
+//var pc;
 var videoStream;
 
 let staCondividendo;
-let staiGuardando;
+
 
 const pari= new Map();
 var pariToCondivisore
@@ -36,25 +36,18 @@ const displayMediaOptions = {
 
 
 startButton.onclick = async function (e) {
-
-	//TODO crivi policy for polite 
-	//polite=true;
     //cattura schermo e stream;
     {try {
       
       videoStream= await navigator.mediaDevices.getDisplayMedia(
         displayMediaOptions);
-        
-      //for (const track of videoStream.getTracks()) {
-      //pc.addTrack(track, videoStream);
-      //}  
-        
+   
       video.srcObject=videoStream;
 
     } catch (error) {
         console.log(error);
       }
-    };	
+    };
     socket.emit('condivido');
     console.log("condivido");
     startButton.disabled=true;
@@ -66,9 +59,10 @@ startButton.onclick = async function (e) {
   
 stopButton.onclick = function (e) {
   //TODO : gestire errori ... 
-  //assert : staCondividendo===  sonoIo
+  //assert : staCondividendo ===  socket.id
   
-  socket.emit('stop_condivido');
+  
+  socket.emit('stop_condivido'); //TO DO: spostare in fondo?
   startButton.disabled=false;
   stopButton.disabled=true; //TODO è ridondante
 
@@ -88,7 +82,9 @@ stopButton.onclick = function (e) {
 	  });
 	  pari.clear();
   }
-
+  // aggiorno UI
+  condivisore.innerHTML="";
+  staCondividendo="NESSUNO";
 };
 
 
@@ -181,7 +177,8 @@ socket.on("message-desc", async (sockFrom, sockTO, message)=> {
 	console.log("           message ="+message);
 	//console.log("message "+JSON.stringify(message));
 	message=JSON.parse(message);
-	
+
+    let pc;
 	if (pariToCondivisore ) { 
 		console.log("pariconfividore TRUE"+pariToCondivisore);
 		pc=pariToCondivisore;
@@ -229,7 +226,8 @@ socket.on("message-cand", async (sockFrom, sockTo, message)=> {
 	//console.log("message "+JSON.stringify(message));
 	message=JSON.parse(message);
     console.log("è un candidato ");
-    	if (pariToCondivisore ) { 
+    let pc;
+      if (pariToCondivisore ) { 
 		console.log("pariconfividore TRUE"+pariToCondivisore);
 		pc=pariToCondivisore;
 	}
