@@ -28,17 +28,6 @@ seguire qui : https://nodejs.org/en/knowledge/HTTP/servers/how-to-create-a-HTTPS
 
 
 
-
-Realizziamolo  da :
-
-[https://itsallbinary.com/create-your-own-screen-sharing-web-application-using-java-and-javascript-webrtc/](https://itsallbinary.com/create-your-own-screen-sharing-web-application-using-java-and-javascript-webrtc/)
-
-
-dubbi ....
-Java web app per il deploy serve tomcat o analogo ....
-scriviamo il lato server in altro modo ? 
-
-
 approfondimenti 
 
 https://webrtc.github.io/webrtc-org/start/
