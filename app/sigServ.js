@@ -1,16 +1,24 @@
 'use strict';
 //prova ...
 const os = require('os');
-const http = require('http');
+const https = require('https');
 const nodeStatic = require('node-static');
 
 const { Server } = require("socket.io");
 var fileServer = new(nodeStatic.Server)();
 
-var app = http.createServer(function(req, res) {
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
+
+var app = https.createServer(options, function(req, res) {
   fileServer.serve(req, res);
 });
-console.log('listening on http://localhost:8080');
+console.log('listening on https://localhost:8080');
+
 
 const io = new Server(app);
 app.listen(8080);
