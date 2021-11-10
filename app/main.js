@@ -72,12 +72,14 @@ stopButton.onclick = function (e) {
     pariToCondivisore.pc=null;
     paricondivisore=null;
   }
-  else { 
-    pari.forEach((pc, sock) => {
-      pc.pc.close(); 
-      pc.pc=null;pc=null;
-    });
-    pari.clear();
+  else {
+    if ( pari.size !=0 ){
+      pari.forEach((pc, sock) => {
+        pc.pc.close(); 
+        pc.pc=null;pc=null;
+      });
+      pari.clear();
+    }
   }
   // aggiorno UI
   condivisore.innerHTML="";
@@ -165,6 +167,24 @@ socket.on("user_disconnected", async (sockID)=> {
   console.log("user disconnected ="+sockID);
   //TODO:   chiudere la connessione con il disconnesso ?? ..
   //        verifica se stava condividendo ...
+  console.log("  staCondividendo ="+staCondividendo);
+  let pc;
+  if ( staCondividendo == sockID ) {
+    console.log("      il client disconnesso stava condividendo" );
+    //chiudo la connessione con il client
+    if (pariToCondivisore){ //TODO : verificare  se è corretto la domanda, la variabile esiste anche se non inizializzata?
+      console.log("1");
+      pariToCondivisore.pc.Close();
+      pariToCondivisore.pc=null;pariToCondivisore=null;
+    } else { console.lofg("ERRROOEREEE"); }
+  }else {
+      console.log("2");
+      pc= pari.get(sockID);
+      pc.pc.close(); 
+      pc.pc=null;pc=null;
+      pari.delete(sockID);
+  }
+  
 });
 
 
