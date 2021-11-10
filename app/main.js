@@ -20,7 +20,7 @@ let staCondividendo;
 
 
 const pari= new Map();
-var pariToCondivisore
+var pariToCondivisore=null;
 
 //*connessione al signal server
 const socket = io.connect();
@@ -172,17 +172,29 @@ socket.on("user_disconnected", async (sockID)=> {
   if ( staCondividendo == sockID ) {
     console.log("      il client disconnesso stava condividendo" );
     //chiudo la connessione con il client
-    if (pariToCondivisore){ //TODO : verificare  se è corretto la domanda, la variabile esiste anche se non inizializzata?
+    if (pariToCondivisore){ 
       console.log("1");
       pariToCondivisore.pc.Close();
       pariToCondivisore.pc=null;pariToCondivisore=null;
-    } else { console.lofg("ERRROOEREEE"); }
-  }else {
-      console.log("2");
-      pc= pari.get(sockID);
-      pc.pc.close(); 
-      pc.pc=null;pc=null;
-      pari.delete(sockID);
+    }
+    else { console.lofg("ERRROOEREEE");
+             //TODO : siverifica sonlo nel caso il condivisore si è
+             //disconnesso prima che il visore abbia fatto in tempo
+             //a crare la variabile pariToCondivisore
+           }
+  }
+  else { //Il disconnesso è un visore
+      if ( staCondividendo == socket.Id) { //sono io che condivido 
+        console.log("2");
+        pc= pari.get(sockID);
+        pc.pc.close(); 
+        pc.pc=null;pc=null;
+        pari.delete(sockID);
+      }
+      else { // io sono un visore e lo è anche il disconnesso,
+             // faccio nulla ( la lista dei partecipanti
+             // viene inviata dal server)
+      }
   }
   
 });
@@ -345,14 +357,23 @@ class ConnessionePari {
         // All ICE candidates have been sent
       }
     }
-    
+    //this.pc.oniceconnectionstatechange = () => {
+      //console.log("pc oniceconectionstatechange ="+this.pc.iceConnectionState );
+      //if (this.pc.iceConnectionState === "failed") {
+        //console.log("    connections failed, call IceRestard");
+        //this.pc.restartIce();
+      //}
+    //}
+
     this.pc.ontrack = ({track, streams}) => {
         console.log("ricevo traccia");
         track.onunmute = () => {
             if (video.srcObject) {
+              console.log("videosrcobject");
             return;
             }
         video.srcObject = streams[0];
+        console.log("videosrcobject=stream");
         }
     }
   }
