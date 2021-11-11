@@ -38,11 +38,16 @@ io.on('connection', (socket) => {
   io.sockets.emit('lista_stanza',Array.from(clients.keys()).join(' '));
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
-    console.log("  num connessioni="+clients.size);
+    console.log('signal disconnect'+socket.id);
+    console.log("   num conn.ni="+clients.size);
 
     socket.broadcast.emit( 'user_disconnected', socket.id);
     //TODO controllare se era il condivisore, qui o sui client ?
+    
+    io.sockets.emit('lista_stanza',Array.from(clients.keys()).join(' '));
+    if (socket.id==staCondividendo) {
+      staCondividendo="NESSUNO"
+    }
   });
   
   socket.on('condivido', () => {

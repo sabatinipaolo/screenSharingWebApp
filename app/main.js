@@ -20,7 +20,7 @@ let staCondividendo;
 
 
 const pari= new Map();
-var pariToCondivisore
+var pariToCondivisore=null;
 
 //*connessione al signal server
 const socket = io.connect();
@@ -72,12 +72,14 @@ stopButton.onclick = function (e) {
     pariToCondivisore.pc=null;
     paricondivisore=null;
   }
-  else { 
-    pari.forEach((pc, sock) => {
-      pc.pc.close(); 
-      pc.pc=null;pc=null;
-    });
-    pari.clear();
+  else {
+    if ( pari.size !=0 ){
+      pari.forEach((pc, sock) => {
+        pc.pc.close(); 
+        pc.pc=null;pc=null;
+      });
+      pari.clear();
+    }
   }
   // aggiorno UI
   condivisore.innerHTML="";
@@ -165,6 +167,36 @@ socket.on("user_disconnected", async (sockID)=> {
   console.log("user disconnected ="+sockID);
   //TODO:   chiudere la connessione con il disconnesso ?? ..
   //        verifica se stava condividendo ...
+  console.log("  staCondividendo ="+staCondividendo);
+  let pc;
+  if ( staCondividendo == sockID ) {
+    console.log("      il client disconnesso stava condividendo" );
+    //chiudo la connessione con il client
+    if (pariToCondivisore){ 
+      console.log("1");
+      pariToCondivisore.pc.Close();
+      pariToCondivisore.pc=null;pariToCondivisore=null;
+    }
+    else { console.lofg("ERRROOEREEE");
+             //TODO : siverifica sonlo nel caso il condivisore si è
+             //disconnesso prima che il visore abbia fatto in tempo
+             //a crare la variabile pariToCondivisore
+           }
+  }
+  else { //Il disconnesso è un visore
+      if ( staCondividendo == socket.Id) { //sono io che condivido 
+        console.log("2");
+        pc= pari.get(sockID);
+        pc.pc.close(); 
+        pc.pc=null;pc=null;
+        pari.delete(sockID);
+      }
+      else { // io sono un visore e lo è anche il disconnesso,
+             // faccio nulla ( la lista dei partecipanti
+             // viene inviata dal server)
+      }
+  }
+  
 });
 
 
@@ -265,7 +297,7 @@ socket.on("vuole_guardare",  (sockFrom, sockTo)=> {
   console.log("\n               ="+sockTo+" ??="+staCondividendo);
   
   // crea una RTCPeerconnection per socket....
-  let peer = new ConnessionePari(sockFrom);
+  let peer = new ConnessionePari(sockFrom,false);
   
   console.log("               = creata peer per "+sockFrom);
  
@@ -285,7 +317,7 @@ socket.on("vuole_guardare",  (sockFrom, sockTo)=> {
 
 function chiedeDiGuardare(clientCheStaCondividendo){
 
-  pariToCondivisore = new ConnessionePari(clientCheStaCondividendo);
+  pariToCondivisore = new ConnessionePari(clientCheStaCondividendo,true);
   console.log( "chiedo di guardare" );
   socket.emit("voglio_guardare",socket.id,clientCheStaCondividendo);
 }
@@ -294,10 +326,10 @@ function chiedeDiGuardare(clientCheStaCondividendo){
 
     
 class ConnessionePari {
-  constructor(sockID) {
+  constructor(sockID,p) {
     this.makingOffer = false;
     this.ignoreOffer = false;
-    this.polite = false;
+    this.polite = p;
     this.pc= new RTCPeerConnection(pcConfig);
     
     this.pc.onnegotiationneeded = async () => {
@@ -325,14 +357,23 @@ class ConnessionePari {
         // All ICE candidates have been sent
       }
     }
-    
+    //this.pc.oniceconnectionstatechange = () => {
+      //console.log("pc oniceconectionstatechange ="+this.pc.iceConnectionState );
+      //if (this.pc.iceConnectionState === "failed") {
+        //console.log("    connections failed, call IceRestard");
+        //this.pc.restartIce();
+      //}
+    //}
+
     this.pc.ontrack = ({track, streams}) => {
         console.log("ricevo traccia");
         track.onunmute = () => {
             if (video.srcObject) {
+              console.log("videosrcobject");
             return;
             }
         video.srcObject = streams[0];
+        console.log("videosrcobject=stream");
         }
     }
   }
