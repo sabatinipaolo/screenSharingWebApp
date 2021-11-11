@@ -297,7 +297,7 @@ socket.on("vuole_guardare",  (sockFrom, sockTo)=> {
   console.log("\n               ="+sockTo+" ??="+staCondividendo);
   
   // crea una RTCPeerconnection per socket....
-  let peer = new ConnessionePari(sockFrom);
+  let peer = new ConnessionePari(sockFrom,false);
   
   console.log("               = creata peer per "+sockFrom);
  
@@ -317,7 +317,7 @@ socket.on("vuole_guardare",  (sockFrom, sockTo)=> {
 
 function chiedeDiGuardare(clientCheStaCondividendo){
 
-  pariToCondivisore = new ConnessionePari(clientCheStaCondividendo);
+  pariToCondivisore = new ConnessionePari(clientCheStaCondividendo,true);
   console.log( "chiedo di guardare" );
   socket.emit("voglio_guardare",socket.id,clientCheStaCondividendo);
 }
@@ -326,10 +326,10 @@ function chiedeDiGuardare(clientCheStaCondividendo){
 
     
 class ConnessionePari {
-  constructor(sockID) {
+  constructor(sockID,p) {
     this.makingOffer = false;
     this.ignoreOffer = false;
-    this.polite = false;
+    this.polite = p;
     this.pc= new RTCPeerConnection(pcConfig);
     
     this.pc.onnegotiationneeded = async () => {
