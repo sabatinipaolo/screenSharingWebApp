@@ -26,8 +26,8 @@ let staCondividendo = "NESSUNO";
 let clients = io.sockets.sockets; // is a Map
 
 io.on("connection", (socket) => {
-    console.log("\na user connected ");
-    console.log("  num connessioni=" + clients.size);
+    console.log("\n connesso user con ID="+socket.id);
+    console.log("          num connessioni=" + clients.size);
 
     socket.emit("welcome", staCondividendo);
 

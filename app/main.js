@@ -86,15 +86,15 @@ stopButton.onclick = function (e) {
 
     socket.on("connect", () => {
         chiSono.innerHTML = socket.id;
+        console.log("connesso al server mio ID="+socket.id )
     });
 
     socket.on("welcome", function (clientCheStaCondividendo) {
-        console.log(" welcome from signal server" + clientCheStaCondividendo);
+        console.log("welcome from signal server, sta condividendo= " + clientCheStaCondividendo);
 
         condivisore.innerHTML = staCondividendo = clientCheStaCondividendo;
 
         if (staCondividendo === "NESSUNO") {
-            console.log("         nessuno sta condividendo");
             // abilita i tasti ....
             startButton.disabled = false;
             stopButton.disabled = true; //TODO è ridondante
