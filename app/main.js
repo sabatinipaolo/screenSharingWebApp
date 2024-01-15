@@ -17,7 +17,7 @@ var videoStream;
 
 let staCondividendo;
 
-const pari = new Map();
+const connessioniConViewers = new Map();
 var connessioneAlBroadcaster= null;
 
 //*connessione al signal server
@@ -59,20 +59,20 @@ stopButton.onclick = function (e) {
     tracks.forEach((track) => track.stop());
     video.srcObject = null;
 
-    // Chiudo le connessionei tra pari ..
+    // Chiudo le connessioniConViewers ..
     if (connessioneAlBroadcaster) {
         //TODO : è inutile l'if ??
         connessioneAlBroadcaster.close();
         connessioneAlBroadcaster.pc = null;
-        paricondivisore = null;
+        connessioniConViewerscondivisore = null;
     } else {
-        if (pari.size != 0) {
-            pari.forEach((pc, sock) => {
+        if (connessioniConViewers.size != 0) {
+            connessioniConViewers.forEach((pc, sock) => {
                 pc.pc.close();
                 pc.pc = null;
                 pc = null;
             });
-            pari.clear();
+            connessioniConViewers.clear();
         }
     }
     // aggiorno UI
@@ -137,12 +137,12 @@ stopButton.onclick = function (e) {
             connessioneAlBroadcaster.pc = null;
             connessioneAlBroadcaster= null;
         } else {
-            pari.forEach((pc, sock) => {
+            connessioniConViewers.forEach((pc, sock) => {
                 pc.pc.close();
                 pc.pc = null;
                 pc = null;
             });
-            pari.clear();
+            connessioniConViewers.clear();
         }
     });
 
@@ -175,11 +175,11 @@ stopButton.onclick = function (e) {
             if (staCondividendo == socket.Id) {
                 //sono io che condivido
                 console.log("2");
-                pc = pari.get(sockID);
+                pc = connessioniConViewers.get(sockID);
                 pc.pc.close();
                 pc.pc = null;
                 pc = null;
-                pari.delete(sockID);
+                connessioniConViewers.delete(sockID);
             } else {
                 // io sono un visore e lo è anche il disconnesso,
                 // faccio nulla ( la lista dei partecipanti
@@ -198,11 +198,11 @@ stopButton.onclick = function (e) {
 
         let pc;
         if (connessioneAlBroadcaster) {
-            console.log("pariconfividore TRUE" + connessioneAlBroadcaster);
+            console.log("connessione al Broadcaster " + connessioneAlBroadcaster);
             pc = connessioneAlBroadcaster;
         } else {
-            console.log("pariconfividore FAKSE");
-            pc = pari.get(sockFrom);
+            console.log("connessioneAlBroadcaster FAlSE NON SONO VIEWER");
+            pc = connessioniConViewers.get(sockFrom);
         }
 
         try {
@@ -257,12 +257,11 @@ stopButton.onclick = function (e) {
         console.log("è un candidato ");
         let pc;
         if (connessioneAlBroadcaster) {
-            console.log("pariconfividore TRUE" + connessioneAlBroadcaster);
+            console.log("connessione al Broadcaster " + connessioneAlBroadcaster);
             pc = connessioneAlBroadcaster;
         } else {
-            pc = pari.get(sockFrom);
-            console.log("pariconfividore FAKSE" + pc);
-            pc = pari.get(sockFrom);
+            console.log("connessioneAlBroadcaster FAlSE NON SONO VIEWER");
+            pc = connessioniConViewers.get(sockFrom);
         }
         try {
             await pc.pc.addIceCandidate(message);
@@ -284,7 +283,7 @@ stopButton.onclick = function (e) {
 
         console.log("               = creata peer per " + sockFrom);
 
-        pari.set(sockFrom, peer);
+        connessioniConViewers.set(sockFrom, peer);
 
         console.log("               = agg.gotracce per " + sockFrom);
 
