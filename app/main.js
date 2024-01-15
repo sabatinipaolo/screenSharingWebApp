@@ -298,7 +298,7 @@ stopButton.onclick = function (e) {
 
 function chiedeDiGuardare(clientCheStaCondividendo) {
     pariToCondivisore = new ConnessionePari(clientCheStaCondividendo, true);
-    console.log("chiedo di guardare");
+    console.log("invio msg 'voglio guardare' "+clientCheStaCondividendo );
     socket.emit("voglio_guardare", socket.id, clientCheStaCondividendo);
 }
 
@@ -338,6 +338,11 @@ class ConnessionePari {
                 // All ICE candidates have been sent
             }
         };
+        this.pc.oniceconnectionstatechange = () => {
+            if (this.pc.iceConnectionState === "failed") {
+              this.pc.restartIce();
+            }
+        }
         //this.pc.oniceconnectionstatechange = () => {
         //console.log("pc oniceconectionstatechange ="+this.pc.iceConnectionState );
         //if (this.pc.iceConnectionState === "failed") {
