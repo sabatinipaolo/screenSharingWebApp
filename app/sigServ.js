@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("stop_condivido", () => {
+    socket.on("fermo_broadcast", () => {
         console.log("stop condivido " + socket.id + " condi=" + staCondividendo);
 
         if (staCondividendo != "NESSUNO") {

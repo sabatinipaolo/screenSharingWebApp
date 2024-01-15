@@ -51,7 +51,7 @@ stopButton.onclick = function (e) {
     //TODO : gestire errori ...
     //assert : staCondividendo ===  socket.id
 
-    socket.emit("stop_condivido"); //TO DO: spostare in fondo?
+    socket.emit("fermo_broadcast"); //TO DO: spostare in fondo?
     startButton.disabled = false;
     stopButton.disabled = true; //TODO è ridondante
 
