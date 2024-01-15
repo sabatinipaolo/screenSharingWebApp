@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
 
         if (broadcaster == "NESSUNO") {
             broadcaster = socket.id;
-            socket.broadcast.emit("sta_condividendo", broadcaster);
+            socket.broadcast.emit("un_peer_ha_iniziato_il_broadcast", broadcaster);
         } else {
             console.log("ERRORE : richiesta di condicvione in conflitto");
         }

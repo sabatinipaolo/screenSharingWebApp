@@ -105,7 +105,7 @@ stopButton.onclick = function (e) {
         }
     });
 
-    socket.on("sta_condividendo", function (broadcasterDalServer) {
+    socket.on("un_peer_ha_iniziato_il_broadcast", function (broadcasterDalServer) {
         console.log("From SigSERV: sta condividendo" + broadcasterDalServer);
         //TODO : gestire errori ...
         //assert : broadcaster==="NESSUNO"
