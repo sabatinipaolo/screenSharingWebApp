@@ -15,7 +15,7 @@ const condivisore = document.getElementById("condivisore");
 //var pc;
 var videoStream;
 
-let staCondividendo;
+let broadcaster;
 
 const connessioniConViewers = new Map();
 var connessioneAlBroadcaster= null;
@@ -44,12 +44,12 @@ startButton.onclick = async function (e) {
     startButton.disabled = true;
     stopButton.disabled = false;
     condivisore.innerHTML = socket.id;
-    staCondividendo = socket.id;
+    broadcaster = socket.id;
 };
 
 stopButton.onclick = function (e) {
     //TODO : gestire errori ...
-    //assert : staCondividendo ===  socket.id
+    //assert : broadcaster ===  socket.id
 
     socket.emit("fermo_broadcast"); //TO DO: spostare in fondo?
     startButton.disabled = false;
@@ -77,7 +77,7 @@ stopButton.onclick = function (e) {
     }
     // aggiorno UI
     condivisore.innerHTML = "";
-    staCondividendo = "NESSUNO";
+    broadcaster = "NESSUNO";
 };
 
 {
@@ -89,42 +89,42 @@ stopButton.onclick = function (e) {
         console.log("connesso al server mio ID="+socket.id )
     });
 
-    socket.on("welcome", function (clientCheStaCondividendo) {
-        console.log("welcome from signal server, sta condividendo= " + clientCheStaCondividendo);
+    socket.on("welcome", function (broadcasterDalServer) {
+        console.log("welcome from signal server, sta condividendo= " + broadcasterDalServer);
 
-        condivisore.innerHTML = staCondividendo = clientCheStaCondividendo;
+        condivisore.innerHTML = broadcaster = broadcasterDalServer;
 
-        if (staCondividendo === "NESSUNO") {
+        if (broadcaster === "NESSUNO") {
             // abilita i tasti ....
             startButton.disabled = false;
             stopButton.disabled = true; //TODO è ridondante
         } else {
             // chiedi al condivisore una connessione RTC
-            chiedeDiGuardare(clientCheStaCondividendo);
+            chiedeDiGuardare(broadcaster);
             //TODO:
         }
     });
 
-    socket.on("sta_condividendo", function (clientCheStaCondividendo) {
-        console.log("From SigSERV: sta condividendo" + clientCheStaCondividendo);
+    socket.on("sta_condividendo", function (broadcasterDalServer) {
+        console.log("From SigSERV: sta condividendo" + broadcasterDalServer);
         //TODO : gestire errori ...
-        //assert : staCondividendo==="NESSUNO"
+        //assert : broadcaster==="NESSUNO"
         startButton.disabled = true;
         stopButton.disabled = true; //TODO è ridondante
-        condivisore.innerHTML = clientCheStaCondividendo;
-        staCondividendo = clientCheStaCondividendo;
+        condivisore.innerHTML = broadcasterDalServer;
+        broadcaster = broadcasterDalServer;
         // chiedi al condivisiore una connessione RTC
-        chiedeDiGuardare(clientCheStaCondividendo);
+        chiedeDiGuardare(broadcasterDalServer);
     });
 
-    socket.on("stop_condividendo", function (clientCheCondivideva) {
+    socket.on("stop_condividendo", function (broadCasterCheHaFermatoCondivisione) {
         //TODO : gestire errori
-        //assert : staCondividendo===clientCheCondivideva
+        //assert : broadcaster===broadCasterCheHaFermatoCondivisione
         startButton.disabled = false;
         stopButton.disabled = true; //TODO è ridondante
 
         condivisore.innerHTML = "";
-        staCondividendo = "NESSUNO";
+        broadcaster = "NESSUNO";
         video.srcObject = null;
 
         //TODO: chiusura dell connessioni peer?
@@ -154,9 +154,9 @@ stopButton.onclick = function (e) {
         console.log("user disconnected =" + sockID);
         //TODO:   chiudere la connessione con il disconnesso ?? ..
         //        verifica se stava condividendo ...
-        console.log("  staCondividendo =" + staCondividendo);
+        console.log("  broadcaster =" + broadcaster);
         let pc;
-        if (staCondividendo == sockID) {
+        if (broadcaster == sockID) {
             console.log("      il client disconnesso stava condividendo");
             //chiudo la connessione con il client
             if (connessioneAlBroadcaster) {
@@ -172,7 +172,7 @@ stopButton.onclick = function (e) {
             }
         } else {
             //Il disconnesso è un visore
-            if (staCondividendo == socket.Id) {
+            if (broadcaster == socket.Id) {
                 //sono io che condivido
                 console.log("2");
                 pc = connessioniConViewers.get(sockID);
@@ -274,9 +274,9 @@ stopButton.onclick = function (e) {
     });
 
     socket.on("vuole_guardare", (sockFrom, sockTo) => {
-        //assert staCondividendo===socket.id===sockTo;
+        //assert broadcaster===socket.id===sockTo;
         console.log("\nVuole Guradere =" + sockFrom);
-        console.log("\n               =" + sockTo + " ??=" + staCondividendo);
+        console.log("\n               =" + sockTo + " ??=" + broadcaster);
 
         // crea una RTCPeerconnection per socket....
         let peer = new ConnessionePari(sockFrom, false);

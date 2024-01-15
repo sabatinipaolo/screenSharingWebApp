@@ -22,14 +22,14 @@ console.log("listening on https://localhost:8080");
 const io = new Server(app);
 app.listen(8080);
 
-let staCondividendo = "NESSUNO";
+let broadcaster = "NESSUNO";
 let clients = io.sockets.sockets; // is a Map
 
 io.on("connection", (socket) => {
     console.log("\n connesso user con ID="+socket.id);
     console.log("          num connessioni=" + clients.size);
 
-    socket.emit("welcome", staCondividendo);
+    socket.emit("welcome", broadcaster);
 
     //informa tutti gli altri
     io.sockets.emit("lista_stanza", Array.from(clients.keys()).join(" "));
@@ -42,28 +42,28 @@ io.on("connection", (socket) => {
         //TODO controllare se era il condivisore, qui o sui client ?
 
         io.sockets.emit("lista_stanza", Array.from(clients.keys()).join(" "));
-        if (socket.id == staCondividendo) {
-            staCondividendo = "NESSUNO";
+        if (socket.id == broadcaster) {
+            broadcaster = "NESSUNO";
         }
     });
 
     socket.on("inizio_broadcast", () => {
-        console.log("\ninizio_broadcast =" + socket.id + "   staCindividendo=" + staCondividendo);
+        console.log("\ninizio_broadcast =" + socket.id + "   staCindividendo=" + broadcaster);
 
-        if (staCondividendo == "NESSUNO") {
-            staCondividendo = socket.id;
-            socket.broadcast.emit("sta_condividendo", staCondividendo);
+        if (broadcaster == "NESSUNO") {
+            broadcaster = socket.id;
+            socket.broadcast.emit("sta_condividendo", broadcaster);
         } else {
             console.log("ERRORE : richiesta di condicvione in conflitto");
         }
     });
 
     socket.on("fermo_broadcast", () => {
-        console.log("stop condivido " + socket.id + " condi=" + staCondividendo);
+        console.log("stop condivido " + socket.id + " condi=" + broadcaster);
 
-        if (staCondividendo != "NESSUNO") {
-            if (staCondividendo == socket.id) {
-                staCondividendo = "NESSUNO";
+        if (broadcaster != "NESSUNO") {
+            if (broadcaster == socket.id) {
+                broadcaster = "NESSUNO";
                 socket.broadcast.emit("stop_condividendo");
             } else console.log("ERRORE !!! non è lui che sta condividendo");
         }
@@ -79,7 +79,7 @@ io.on("connection", (socket) => {
     socket.on("message-desc", (sockFrom, sockTo, message) => {
         console.log("\nmessage desc from=" + sockFrom);
         console.log("               to=" + sockTo + "?=" + socket.id);
-        console.log("  sta condividendo=" + staCondividendo);
+        console.log("  sta condividendo=" + broadcaster);
         //console.log("                  ="+message);
         socket.to(sockTo).emit("message-desc", sockFrom, sockTo, message);
     });
