@@ -64,16 +64,16 @@ io.on("connection", (socket) => {
         if (broadcaster != "NESSUNO") {
             if (broadcaster == socket.id) {
                 broadcaster = "NESSUNO";
-                socket.broadcast.emit("stop_condividendo");
+                socket.broadcast.emit("il_broadcaster_ha_fermato_la_condivisione");
             } else console.log("ERRORE !!! non è lui che sta condividendo");
         }
     });
 
-    socket.on("voglio_guardare", (sockFrom, sockTo) => {
+    socket.on("divento_un_viewer", (sockFrom, sockTo) => {
         console.log("\nvoglio guardare from=" + sockFrom);
         console.log("                  to=" + sockTo);
 
-        socket.to(sockTo).emit("vuole_guardare", sockFrom, sockTo);
+        socket.to(sockTo).emit("un_peer_e_diventato_un_viewer", sockFrom, sockTo);
     });
 
     socket.on("message-desc", (sockFrom, sockTo, message) => {

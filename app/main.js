@@ -117,7 +117,7 @@ stopButton.onclick = function (e) {
         chiedeDiGuardare(broadcasterDalServer);
     });
 
-    socket.on("stop_condividendo", function (broadCasterCheHaFermatoCondivisione) {
+    socket.on("il_broadcaster_ha_fermato_la_condivisione", function (broadCasterCheHaFermatoCondivisione) {
         //TODO : gestire errori
         //assert : broadcaster===broadCasterCheHaFermatoCondivisione
         startButton.disabled = false;
@@ -273,7 +273,7 @@ stopButton.onclick = function (e) {
         }
     });
 
-    socket.on("vuole_guardare", (sockFrom, sockTo) => {
+    socket.on("un_peer_e_diventato_un_viewer", (sockFrom, sockTo) => {
         //assert broadcaster===socket.id===sockTo;
         console.log("\nVuole Guradere =" + sockFrom);
         console.log("\n               =" + sockTo + " ??=" + broadcaster);
@@ -298,7 +298,7 @@ stopButton.onclick = function (e) {
 function chiedeDiGuardare(clientCheStaCondividendo) {
     connessioneAlBroadcaster= new ConnessionePari(clientCheStaCondividendo, true);
     console.log("invio msg 'voglio guardare' "+clientCheStaCondividendo );
-    socket.emit("voglio_guardare", socket.id, clientCheStaCondividendo);
+    socket.emit("divento_un_viewer", socket.id, clientCheStaCondividendo);
 }
 
 class ConnessionePari {
