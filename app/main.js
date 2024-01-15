@@ -39,8 +39,8 @@ startButton.onclick = async function (e) {
     } catch (error) {
         console.log(error);
     }
-    socket.emit("condivido");
-    console.log("condivido");
+    socket.emit("inizio_broadcast");
+    console.log("inizio_broadcast");
     startButton.disabled = true;
     stopButton.disabled = false;
     condivisore.innerHTML = socket.id;

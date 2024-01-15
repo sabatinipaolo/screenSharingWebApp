@@ -47,8 +47,8 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("condivido", () => {
-        console.log("\ncondivido =" + socket.id + "   staCindividendo=" + staCondividendo);
+    socket.on("inizio_broadcast", () => {
+        console.log("\ninizio_broadcast =" + socket.id + "   staCindividendo=" + staCondividendo);
 
         if (staCondividendo == "NESSUNO") {
             staCondividendo = socket.id;
