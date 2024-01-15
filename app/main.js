@@ -18,7 +18,7 @@ var videoStream;
 let staCondividendo;
 
 const pari = new Map();
-var pariToCondivisore = null;
+var connessioneAlBroadcaster= null;
 
 //*connessione al signal server
 const socket = io.connect();
@@ -60,10 +60,10 @@ stopButton.onclick = function (e) {
     video.srcObject = null;
 
     // Chiudo le connessionei tra pari ..
-    if (pariToCondivisore) {
+    if (connessioneAlBroadcaster) {
         //TODO : è inutile l'if ??
-        pariToCondivisore.close();
-        pariToCondivisore.pc = null;
+        connessioneAlBroadcaster.close();
+        connessioneAlBroadcaster.pc = null;
         paricondivisore = null;
     } else {
         if (pari.size != 0) {
@@ -130,12 +130,12 @@ stopButton.onclick = function (e) {
         //TODO: chiusura dell connessioni peer?
         console.log("chiudo le connessioni");
 
-        //assert : pariToCondivisore non è nulla (o undefined)
-        if (pariToCondivisore) {
+        //assert : connessioneAlBroadcasternon è nulla (o undefined)
+        if (connessioneAlBroadcaster) {
             //TODO : è inutile l'if ??
-            pariToCondivisore.pc.close();
-            pariToCondivisore.pc = null;
-            pariToCondivisore = null;
+            connessioneAlBroadcaster.pc.close();
+            connessioneAlBroadcaster.pc = null;
+            connessioneAlBroadcaster= null;
         } else {
             pari.forEach((pc, sock) => {
                 pc.pc.close();
@@ -159,16 +159,16 @@ stopButton.onclick = function (e) {
         if (staCondividendo == sockID) {
             console.log("      il client disconnesso stava condividendo");
             //chiudo la connessione con il client
-            if (pariToCondivisore) {
+            if (connessioneAlBroadcaster) {
                 console.log("1");
-                pariToCondivisore.pc.Close();
-                pariToCondivisore.pc = null;
-                pariToCondivisore = null;
+                connessioneAlBroadcaster.pc.Close();
+                connessioneAlBroadcaster.pc = null;
+                connessioneAlBroadcaster= null;
             } else {
                 console.lofg("ERRROOEREEE");
                 //TODO : siverifica sonlo nel caso il condivisore si è
                 //disconnesso prima che il visore abbia fatto in tempo
-                //a crare la variabile pariToCondivisore
+                //a crare la variabile connessioneAlBroadcaster
             }
         } else {
             //Il disconnesso è un visore
@@ -197,9 +197,9 @@ stopButton.onclick = function (e) {
         message = JSON.parse(message);
 
         let pc;
-        if (pariToCondivisore) {
-            console.log("pariconfividore TRUE" + pariToCondivisore);
-            pc = pariToCondivisore;
+        if (connessioneAlBroadcaster) {
+            console.log("pariconfividore TRUE" + connessioneAlBroadcaster);
+            pc = connessioneAlBroadcaster;
         } else {
             console.log("pariconfividore FAKSE");
             pc = pari.get(sockFrom);
@@ -256,9 +256,9 @@ stopButton.onclick = function (e) {
         message = JSON.parse(message);
         console.log("è un candidato ");
         let pc;
-        if (pariToCondivisore) {
-            console.log("pariconfividore TRUE" + pariToCondivisore);
-            pc = pariToCondivisore;
+        if (connessioneAlBroadcaster) {
+            console.log("pariconfividore TRUE" + connessioneAlBroadcaster);
+            pc = connessioneAlBroadcaster;
         } else {
             pc = pari.get(sockFrom);
             console.log("pariconfividore FAKSE" + pc);
@@ -297,7 +297,7 @@ stopButton.onclick = function (e) {
 }
 
 function chiedeDiGuardare(clientCheStaCondividendo) {
-    pariToCondivisore = new ConnessionePari(clientCheStaCondividendo, true);
+    connessioneAlBroadcaster= new ConnessionePari(clientCheStaCondividendo, true);
     console.log("invio msg 'voglio guardare' "+clientCheStaCondividendo );
     socket.emit("voglio_guardare", socket.id, clientCheStaCondividendo);
 }
