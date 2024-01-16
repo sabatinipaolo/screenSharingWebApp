@@ -253,7 +253,7 @@ stopButton.onclick = function (e) {
         console.log("\n               =" + sockTo + " ??=" + broadcaster);
 
         // crea una RTCPeerconnection per socket....
-        let peer = new ConnessionePari(sockFrom, false);
+        let peer = new ConnessionePari(sockFrom, true);
 
         console.log("               = creata peer per " + sockFrom);
 
@@ -270,7 +270,7 @@ stopButton.onclick = function (e) {
 }
 
 function chiedeDiGuardare(clientCheStaCondividendo) {
-    connessioneAlBroadcaster= new ConnessionePari(clientCheStaCondividendo, true);
+    connessioneAlBroadcaster= new ConnessionePari(clientCheStaCondividendo, false );
     console.log("invio msg 'voglio guardare' "+clientCheStaCondividendo );
     socket.emit("divento_un_viewer", socket.id, clientCheStaCondividendo);
 }
