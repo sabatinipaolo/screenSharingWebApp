@@ -76,18 +76,10 @@ io.on("connection", (socket) => {
         socket.to(sockTo).emit("un_peer_e_diventato_un_viewer", sockFrom, sockTo);
     });
 
-    socket.on("message-desc", (sockFrom, sockTo, message) => {
-        console.log("\nmessage desc from=" + sockFrom);
-        console.log("               to=" + sockTo + "?=" + socket.id);
-        console.log("  sta condividendo=" + broadcaster);
-        //console.log("                  ="+message);
-        socket.to(sockTo).emit("message-desc", sockFrom, sockTo, message);
-    });
-
-    socket.on("message-cand", (sockFrom, sockTo, message) => {
-        console.log("message-cand from=" + sockFrom);
+    socket.on("message", (sockFrom, sockTo, message) => {
+        console.log("message      from=" + sockFrom);
         console.log("               to=" + sockTo);
         //console.log("                 ="+message);
-        socket.to(sockTo).emit("message-cand", sockFrom, sockTo, message);
+        socket.to(sockTo).emit("message", sockFrom, sockTo, message);
     });
 });

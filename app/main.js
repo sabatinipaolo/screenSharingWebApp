@@ -188,9 +188,9 @@ stopButton.onclick = function (e) {
         }
     });
 
-    socket.on("message-desc", async (sockFrom, sockTO, message) => {
+    socket.on("message", async (sockFrom, sockTO, message) => {
         //TODO :
-        console.log("message-desc from  =" + sockFrom);
+        console.log("message      from  =" + sockFrom);
         console.log("               to  =" + sockTO);
         //console.log("           message ="+message);
         //console.log("message "+JSON.stringify(message));
@@ -224,20 +224,18 @@ stopButton.onclick = function (e) {
                     await pc.pc.setLocalDescription();
                     //TODO: vedi di elimanare JSON.stringify ..
                     socket.emit(
-                        "message-desc",
+                        "message",
                         socket.id,
                         sockFrom,
                         JSON.stringify({ description: pc.pc.localDescription })
                     );
                 }
             } else if (message.candidate) {
-                //TODO: non dovrebbe più servire
-                console.log("è un candidato???? " + message.candidate);
                 try {
                     await pc.pc.addIceCandidate(message.candidate);
                     console.log("aggiunto candidato " + message.candidate);
                 } catch (err) {
-                    if (!ignoreOffer) {
+                    if (!pc.ignoreOffer) {
                         throw err;
                     }
                 }
@@ -247,31 +245,7 @@ stopButton.onclick = function (e) {
         }
     });
 
-    socket.on("message-cand", async (sockFrom, sockTo, message) => {
-        console.log("message-cand  from=" + sockFrom);
-        console.log("                to=" + sockTo);
-        console.log("                  =" + message);
-        //console.log("message "+JSON.stringify(message));
 
-        message = JSON.parse(message);
-        console.log("è un candidato ");
-        let pc;
-        if (connessioneAlBroadcaster) {
-            console.log("connessione al Broadcaster " + connessioneAlBroadcaster);
-            pc = connessioneAlBroadcaster;
-        } else {
-            console.log("connessioneAlBroadcaster FAlSE NON SONO VIEWER");
-            pc = connessioniConViewers.get(sockFrom);
-        }
-        try {
-            await pc.pc.addIceCandidate(message);
-            console.log("aggiunto candidato " + message);
-        } catch (err) {
-            if (!pc.ignoreOffer) {
-                throw err;
-            }
-        }
-    });
 
     socket.on("un_peer_e_diventato_un_viewer", (sockFrom, sockTo) => {
         //assert broadcaster===socket.id===sockTo;
@@ -315,7 +289,7 @@ class ConnessionePari {
                 await this.pc.setLocalDescription();
                 console.log({ description: this.pc.localDescription });
                 socket.emit(
-                    "message-desc",
+                    "message",
                     socket.id,
                     sockID,
                     JSON.stringify({ description: this.pc.localDescription })
@@ -327,12 +301,13 @@ class ConnessionePari {
             } //try
         };
 
-        this.pc.onicecandidate = (event) => {
-            //console.log("on ice candidate"+ event.candidate.candidate);
-            if (event.candidate) {
-                console.log("     invio candidate " + event.candidate.candidate);
+        this.pc.onicecandidate = ({candidate}) => {
+            console.log("on ice candidate");
+            console.log( candidate);
+            if (candidate) {
+                console.log("     invio candidate " +candidate.candidate);
                 // Send the candidate to the remote peer
-                socket.emit("message-cand", socket.id, sockID, JSON.stringify(event.candidate));
+                socket.emit("message", socket.id, sockID, JSON.stringify({candidate}));
             } else {
                 // All ICE candidates have been sent
             }
