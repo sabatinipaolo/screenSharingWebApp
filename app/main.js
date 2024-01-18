@@ -285,7 +285,7 @@ class ConnessionePari {
         this.pc.onnegotiationneeded = async () => {
             console.log("on negotiate needed with " + sockID);
             try {
-                this.pc.makingOffer = true;
+                this.makingOffer = true;
                 await this.pc.setLocalDescription();
                 console.log({ description: this.pc.localDescription });
                 socket.emit(
@@ -297,7 +297,7 @@ class ConnessionePari {
             } catch (err) {
                 console.error(err);
             } finally {
-                this.pc.makingOffer = false;
+                this.makingOffer = false;
             } //try
         };
 
